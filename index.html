@@ -12,87 +12,41 @@
             margin: 0; 
             padding: 20px; 
         }
-        h1 { 
-            text-align: center; 
-            margin-bottom: 30px; 
-            color: #1a1a1a;
-        }
-        .grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
-            gap: 20px; 
-            max-width: 1200px; 
-            margin: 0 auto; 
-        }
-        .card { 
-            background: white; 
-            border-radius: 12px; 
-            padding: 20px; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
-            border-left: 6px solid; 
-            display: flex; 
-            flex-direction: column; 
-            justify-content: space-between;
-            min-height: 140px;
-        }
-        .card h3 { 
-            margin: 0 0 10px 0; 
-            font-size: 1.3rem; 
-        }
-        .status { 
-            font-weight: bold; 
-            margin-bottom: 10px; 
-            font-size: 1.1rem;
-        }
-        .details { 
-            font-size: 0.9rem; 
-            color: #555; 
-            margin-bottom: 4px;
-        }
-        .photo-link { 
-            display: inline-block; 
-            margin-top: 15px; 
-            padding: 8px 12px; 
-            background: #007bff; 
-            color: white; 
-            text-decoration: none; 
-            border-radius: 6px; 
-            text-align: center; 
-            font-size: 0.9rem;
-            transition: 0.2s;
-        }
-        .photo-link:hover {
-            background: #0056b3;
-        }
+        h1 { text-align: center; margin-bottom: 30px; color: #1a1a1a; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; }
+        .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 6px solid; display: flex; flex-direction: column; justify-content: space-between; min-height: 140px; }
+        .card h3 { margin: 0 0 10px 0; font-size: 1.3rem; }
+        .status { font-weight: bold; margin-bottom: 10px; font-size: 1.1rem; }
+        .details { font-size: 0.9rem; color: #555; margin-bottom: 4px; }
         
-        /* Цвета статусов */
+        /* Изменили кнопку */
+        .photo-link { 
+            display: inline-block; margin-top: 15px; padding: 10px 12px; 
+            background: #007bff; color: white; border: none; border-radius: 6px; 
+            text-align: center; font-size: 0.9rem; cursor: pointer; width: 100%; transition: 0.2s; 
+        }
+        .photo-link:hover { background: #0056b3; }
+        
         .status-opened { border-color: #28a745; }
         .status-opened .status { color: #28a745; }
-        
         .status-waiting { border-color: #ffc107; }
         .status-waiting .status { color: #d39e00; }
-        
         .status-late { border-color: #dc3545; background-color: #fff8f8; }
         .status-late .status { color: #dc3545; }
         
-        .header-panel {
-            max-width: 1200px;
-            margin: 0 auto 20px auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .refresh-btn { 
-            padding: 10px 20px; 
-            background: #333; 
-            color: white; 
-            border: none; 
-            border-radius: 8px; 
-            cursor: pointer; 
-            font-size: 1rem; 
-        }
+        .header-panel { max-width: 1200px; margin: 0 auto 20px auto; display: flex; justify-content: space-between; align-items: center; }
+        .refresh-btn { padding: 10px 20px; background: #333; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; }
         .refresh-btn:hover { background: #555; }
         #last-update { font-size: 0.9rem; color: #777; }
+        
+        /* Стили для всплывающего окна с фото */
+        .modal { 
+            display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; 
+            background-color: rgba(0,0,0,0.8); align-items: center; justify-content: center; 
+        }
+        .modal img { max-width: 90%; max-height: 90%; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .close-btn { position: absolute; top: 20px; right: 35px; color: white; font-size: 40px; font-weight: bold; cursor: pointer; }
+        .close-btn:hover { color: #ccc; }
     </style>
 </head>
 <body>
@@ -108,11 +62,15 @@
         <div style="text-align: center; width: 100%; grid-column: 1 / -1;">Загрузка данных из базы...</div>
     </div>
 
+    <!-- Блок модального окна (спрятан по умолчанию) -->
+    <div id="imageModal" class="modal">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <img id="modalImage" src="">
+    </div>
+
     <script>
-        // Ссылка на ваш скрипт Google Таблиц
         const URL = "https://script.google.com/macros/s/AKfycbxNQKdlCGzNCznsXEMR2zOM0_BX2cAuOk29mWYRO7XSrzVLPGKfkMtOey6iuPxrdm5P/exec";
         
-        // Список магазинов и график их открытия
         const shops = {
             "Медведково": "08:00",
             "Трудобелики": "09:00",
@@ -138,7 +96,7 @@
                 const timeStr = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                 document.getElementById('last-update').innerText = `Последнее обновление: ${timeStr}`;
             } catch (error) {
-                console.error("Ошибка загрузки:", error);
+                console.error("Ошибка:", error);
                 document.getElementById("dashboard").innerHTML = "<div style='text-align: center; width: 100%; color: red; grid-column: 1 / -1;'>Ошибка загрузки данных.</div>";
             }
         }
@@ -147,25 +105,20 @@
             const dashboard = document.getElementById("dashboard");
             dashboard.innerHTML = "";
 
-            // Получаем сегодняшнюю дату в формате DD.MM.YYYY, чтобы сверять только актуальные чеки
             const now = new Date();
             const dd = String(now.getDate()).padStart(2, '0');
             const mm = String(now.getMonth() + 1).padStart(2, '0');
             const yyyy = now.getFullYear();
             const todayStr = `${dd}.${mm}.${yyyy}`;
 
-            // Фильтруем данные из таблицы только за сегодня
             const todayOpenings = data.filter(row => row[0] === todayStr);
 
             for (const [shopName, openTime] of Object.entries(shops)) {
-                // Ищем, есть ли отчет от этого магазина за сегодня
                 const openingData = todayOpenings.find(row => row[2] === shopName);
-                
                 const card = document.createElement("div");
                 card.className = "card";
 
                 if (openingData) {
-                    // Магазин открыт
                     const time = openingData[1];
                     const photo = openingData[4];
                     const employee = openingData[5] || "Неизвестно";
@@ -178,15 +131,13 @@
                             <div class="details">Сотрудник: <b>${employee}</b></div>
                             <div class="details">По графику: ${openTime}</div>
                         </div>
-                        ${photo !== "Нет фото" ? `<a href="${photo}" target="_blank" class="photo-link">Посмотреть чек</a>` : ""}
+                        ${photo !== "Нет фото" ? `<button onclick="openModal('${photo}')" class="photo-link">Посмотреть чек</button>` : ""}
                     `;
                 } else {
-                    // Магазин еще не прислал чек. Сравниваем время
                     const [h, m] = openTime.split(':').map(Number);
                     const expectedOpen = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0);
                     
                     if (now > expectedOpen) {
-                        // Время вышло - опоздание
                         card.classList.add("status-late");
                         card.innerHTML = `
                             <div>
@@ -196,7 +147,6 @@
                             </div>
                         `;
                     } else {
-                        // Время еще не наступило
                         card.classList.add("status-waiting");
                         card.innerHTML = `
                             <div>
@@ -211,10 +161,26 @@
             }
         }
 
-        // Запускаем при открытии страницы
-        fetchData();
+        // --- Управление всплывающим окном ---
+        function openModal(imgSrc) {
+            document.getElementById('modalImage').src = imgSrc;
+            document.getElementById('imageModal').style.display = 'flex';
+        }
         
-        // Автоматически обновляем данные каждые 2 минуты (120000 миллисекунд)
+        function closeModal() {
+            document.getElementById('imageModal').style.display = 'none';
+            document.getElementById('modalImage').src = ''; // Очищаем источник
+        }
+        
+        // Закрываем окно, если кликнуть мимо картинки
+        window.onclick = function(event) {
+            const modal = document.getElementById('imageModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        fetchData();
         setInterval(fetchData, 120000);
     </script>
 </body>
