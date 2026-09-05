@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Дашборд Открытия Магазинов</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #f5f7fa; 
+            color: #333; 
+            margin: 0; 
+            padding: 20px; 
+        }
+        h1 { 
+            text-align: center; 
+            margin-bottom: 30px; 
+            color: #1a1a1a;
+        }
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+            gap: 20px; 
+            max-width: 1200px; 
+            margin: 0 auto; 
+        }
+        .card { 
+            background: white; 
+            border-radius: 12px; 
+            padding: 20px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
+            border-left: 6px solid; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: space-between;
+            min-height: 140px;
+        }
+        .card h3 { 
+            margin: 0 0 10px 0; 
+            font-size: 1.3rem; 
+        }
+        .status { 
+            font-weight: bold; 
+            margin-bottom: 10px; 
+            font-size: 1.1rem;
+        }
+        .details { 
+            font-size: 0.9rem; 
+            color: #555; 
+            margin-bottom: 4px;
+        }
+        .photo-link { 
+            display: inline-block; 
+            margin-top: 15px; 
+            padding: 8px 12px; 
+            background: #007bff; 
+            color: white; 
+            text-decoration: none; 
+            border-radius: 6px; 
+            text-align: center; 
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+        .photo-link:hover {
+            background: #0056b3;
+        }
+        
+        /* Цвета статусов */
+        .status-opened { border-color: #28a745; }
+        .status-opened .status { color: #28a745; }
+        
+        .status-waiting { border-color: #ffc107; }
+        .status-waiting .status { color: #d39e00; }
+        
+        .status-late { border-color: #dc3545; background-color: #fff8f8; }
+        .status-late .status { color: #dc3545; }
+        
+        .header-panel {
+            max-width: 1200px;
+            margin: 0 auto 20px auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .refresh-btn { 
+            padding: 10px 20px; 
+            background: #333; 
+            color: white; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-size: 1rem; 
+        }
+        .refresh-btn:hover { background: #555; }
+        #last-update { font-size: 0.9rem; color: #777; }
+    </style>
+</head>
+<body>
+
+    <h1>Мониторинг открытия смен</h1>
+    
+    <div class="header-panel">
+        <div id="last-update">Обновление данных...</div>
+        <button class="refresh-btn" onclick="fetchData()">Обновить сейчас</button>
+    </div>
+
+    <div class="grid" id="dashboard">
+        <div style="text-align: center; width: 100%; grid-column: 1 / -1;">Загрузка данных из базы...</div>
+    </div>
+
+    <script>
+        // Ссылка на ваш скрипт Google Таблиц
+        const URL = "https://script.google.com/macros/s/AKfycbxNQKdlCGzNCznsXEMR2zOM0_BX2cAuOk29mWYRO7XSrzVLPGKfkMtOey6iuPxrdm5P/exec";
+        
+        // Список магазинов и график их открытия
+        const shops = {
+            "Медведково": "08:00",
+            "Трудобелики": "09:00",
+            "Котельники": "09:00",
+            "Королёв": "09:00",
+            "Южный": "09:00",
+            "Лента": "09:00",
+            "Мира": "09:00",
+            "Краснодар": "09:00",
+            "Реутов": "10:00",
+            "Метрополис": "10:00",
+            "Европолис Вход": "10:00",
+            "Европолис Окей": "10:00"
+        };
+
+        async function fetchData() {
+            try {
+                const response = await fetch(URL);
+                const data = await response.json();
+                renderDashboard(data);
+                
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                document.getElementById('last-update').innerText = `Последнее обновление: ${timeStr}`;
+            } catch (error) {
+                console.error("Ошибка загрузки:", error);
+                document.getElementById("dashboard").innerHTML = "<div style='text-align: center; width: 100%; color: red; grid-column: 1 / -1;'>Ошибка загрузки данных.</div>";
+            }
+        }
+
+        function renderDashboard(data) {
+            const dashboard = document.getElementById("dashboard");
+            dashboard.innerHTML = "";
+
+            // Получаем сегодняшнюю дату в формате DD.MM.YYYY, чтобы сверять только актуальные чеки
+            const now = new Date();
+            const dd = String(now.getDate()).padStart(2, '0');
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const yyyy = now.getFullYear();
+            const todayStr = `${dd}.${mm}.${yyyy}`;
+
+            // Фильтруем данные из таблицы только за сегодня
+            const todayOpenings = data.filter(row => row[0] === todayStr);
+
+            for (const [shopName, openTime] of Object.entries(shops)) {
+                // Ищем, есть ли отчет от этого магазина за сегодня
+                const openingData = todayOpenings.find(row => row[2] === shopName);
+                
+                const card = document.createElement("div");
+                card.className = "card";
+
+                if (openingData) {
+                    // Магазин открыт
+                    const time = openingData[1];
+                    const photo = openingData[4];
+                    const employee = openingData[5] || "Неизвестно";
+                    
+                    card.classList.add("status-opened");
+                    card.innerHTML = `
+                        <div>
+                            <h3>${shopName}</h3>
+                            <div class="status">✅ Открыт в ${time}</div>
+                            <div class="details">Сотрудник: <b>${employee}</b></div>
+                            <div class="details">По графику: ${openTime}</div>
+                        </div>
+                        ${photo !== "Нет фото" ? `<a href="${photo}" target="_blank" class="photo-link">Посмотреть чек</a>` : ""}
+                    `;
+                } else {
+                    // Магазин еще не прислал чек. Сравниваем время
+                    const [h, m] = openTime.split(':').map(Number);
+                    const expectedOpen = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0);
+                    
+                    if (now > expectedOpen) {
+                        // Время вышло - опоздание
+                        card.classList.add("status-late");
+                        card.innerHTML = `
+                            <div>
+                                <h3>${shopName}</h3>
+                                <div class="status">❌ Задерживается</div>
+                                <div class="details">Должны были открыться в ${openTime}</div>
+                            </div>
+                        `;
+                    } else {
+                        // Время еще не наступило
+                        card.classList.add("status-waiting");
+                        card.innerHTML = `
+                            <div>
+                                <h3>${shopName}</h3>
+                                <div class="status">⏳ Ждем открытия</div>
+                                <div class="details">Открытие по графику в ${openTime}</div>
+                            </div>
+                        `;
+                    }
+                }
+                dashboard.appendChild(card);
+            }
+        }
+
+        // Запускаем при открытии страницы
+        fetchData();
+        
+        // Автоматически обновляем данные каждые 2 минуты (120000 миллисекунд)
+        setInterval(fetchData, 120000);
+    </script>
+</body>
+</html>
