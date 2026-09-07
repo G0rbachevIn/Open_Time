@@ -8,21 +8,22 @@
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; color: #333; }
         h1 { text-align: center; color: #222; margin-bottom: 20px; font-size: 28px; }
         
-        /* Стили для вкладок */
-        .tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
+        /* Вкладки */
+        .tabs { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
         .tab-btn { padding: 10px 25px; border: none; background: #e0e0e0; color: #555; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.3s; }
         .tab-btn:hover { background: #d5d5d5; }
         .tab-btn.active { background: #0d6efd; color: white; box-shadow: 0 4px 6px rgba(13, 110, 253, 0.2); }
         
-        /* Панель управления (обновление и календарь) */
-        .control-panel { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto 20px; font-size: 14px; color: #777; background: white; padding: 15px 20px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-        .date-picker-container { display: none; align-items: center; gap: 10px; }
-        .date-picker-container input[type="date"] { padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; cursor: pointer; font-family: inherit; }
+        /* Панель управления */
+        .control-panel { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; max-width: 1200px; margin: 0 auto 20px; font-size: 14px; color: #777; background: white; padding: 15px 20px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); gap: 15px; }
+        .controls-group { display: none; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .controls-group input, .controls-group select { padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; cursor: pointer; font-family: inherit; }
         
-        .update-btn { background-color: #333; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .update-btn { background-color: #333; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; white-space: nowrap; }
         .update-btn:hover { background-color: #555; }
         
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; }
+        /* Сетка карточек */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; width: 100%; }
         
         .card { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 6px solid #e0e0e0; display: flex; flex-direction: column; }
         .card.open { border-left-color: #198754; } 
@@ -30,16 +31,26 @@
         .card-title { font-size: 18px; font-weight: bold; margin-bottom: 12px; }
         .card-status { font-size: 15px; font-weight: bold; margin-bottom: 15px; color: #198754; display: flex; align-items: center; gap: 5px; }
         .card-status.closed { color: #dc3545; }
-        .card-status.archive-closed { color: #856404; } /* Желтый цвет для пропущенных смен в архиве */
+        .card-status.archive-closed { color: #856404; }
         
         .card-details { font-size: 13px; color: #555; margin-bottom: 20px; flex-grow: 1; line-height: 1.6; }
         
-        .btn-primary { background-color: #0d6efd; color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; width: 100%; font-size: 14px; font-weight: bold; transition: 0.2s; }
+        .btn-primary { background-color: #0d6efd; color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; width: 100%; font-size: 14px; font-weight: bold; transition: 0.2s; text-align: center; text-decoration: none; box-sizing: border-box; }
         .btn-primary:hover { background-color: #0b5ed7; }
         .btn-primary:disabled { background-color: #cccccc; cursor: not-allowed; }
+
+        /* Стили для таблицы статистики */
+        .table-container { width: 100%; max-width: 1200px; margin: 0 auto; overflow-x: auto; background: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .stats-table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        .stats-table th, .stats-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
+        .stats-table th { background-color: #f8f9fa; font-weight: bold; color: #333; }
+        .stats-table tr:hover { background-color: #f1f4f8; }
+        .time-ok { color: #198754; font-weight: bold; }
+        .time-late { color: #dc3545; font-weight: bold; }
+        .btn-small { padding: 6px 12px; font-size: 12px; width: auto; }
         
         @media (max-width: 600px) {
-            .control-panel { flex-direction: column; gap: 15px; text-align: center; }
+            .control-panel { flex-direction: column; text-align: center; }
             .tabs { flex-direction: column; padding: 0 20px; }
             .tab-btn { width: 100%; }
         }
@@ -52,23 +63,48 @@
     <div class="tabs">
         <button class="tab-btn active" id="tab-today" onclick="switchTab('today')">Сегодня</button>
         <button class="tab-btn" id="tab-archive" onclick="switchTab('archive')">Архив по датам</button>
+        <button class="tab-btn" id="tab-stats" onclick="switchTab('stats')">Статистика</button>
     </div>
     
     <div class="control-panel">
         <span id="last-update">Последнее обновление: загрузка...</span>
         
-        <div class="date-picker-container" id="date-controls">
+        <!-- Контролы для Архива -->
+        <div class="controls-group" id="date-controls">
             <label for="history-date"><strong>Выберите дату:</strong></label>
             <input type="date" id="history-date" onchange="renderDashboard()">
+        </div>
+
+        <!-- Контролы для Статистики -->
+        <div class="controls-group" id="stats-controls">
+            <label for="stats-month"><strong>Месяц:</strong></label>
+            <input type="month" id="stats-month" onchange="renderDashboard()">
+            
+            <label for="stats-shop"><strong>Магазин:</strong></label>
+            <select id="stats-shop" onchange="renderDashboard()">
+                <option value="all">Все магазины</option>
+                <option value="Медведково">Медведково</option>
+                <option value="Трудобелики">Трудобелики</option>
+                <option value="Котельники">Котельники</option>
+                <option value="Королёв">Королёв</option>
+                <option value="Южный">Южный</option>
+                <option value="Лента">Лента</option>
+                <option value="Мира">Мира</option>
+                <option value="Краснодар">Краснодар</option>
+                <option value="Реутов">Реутов</option>
+                <option value="Метрополис">Метрополис</option>
+                <option value="Европолис Вход">Европолис Вход</option>
+                <option value="Европолис Окей">Европолис Окей</option>
+            </select>
         </div>
 
         <button class="update-btn" onclick="fetchData()">Обновить данные</button>
     </div>
     
-    <div class="grid" id="dashboard"></div>
+    <!-- Контейнер для карточек (Сегодня/Архив) или Таблицы (Статистика) -->
+    <div id="dashboard" class="grid"></div>
 
     <script>
-        // Ваша рабочая ссылка Гугл Скрипта
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxNQKdlCGzNCznsXEMR2zOM0_BX2cAuOk29mWYRO7XSrzVLPGKfkMtOey6iuPxrdm5P/exec"; 
         
         const schedule = {
@@ -77,31 +113,33 @@
             "Реутов": "10:00", "Метрополис": "10:00", "Европолис Вход": "10:00", "Европолис Окей": "10:00"
         };
 
-        let allData = []; // Сюда будем сохранять всю базу из Гугла
-        let currentMode = 'today'; // Режим работы: 'today' или 'archive'
+        let allData = []; 
+        let currentMode = 'today'; 
 
-        // Устанавливаем в календарь сегодняшнюю дату по умолчанию
+        // Инициализация дат по умолчанию (Текущий день и текущий месяц)
         const todayObjForInput = new Date();
-        document.getElementById('history-date').value = todayObjForInput.toISOString().split('T')[0];
+        const yyyy = todayObjForInput.getFullYear();
+        const mm = String(todayObjForInput.getMonth() + 1).padStart(2, '0');
+        const dd = String(todayObjForInput.getDate()).padStart(2, '0');
+        
+        document.getElementById('history-date').value = `${yyyy}-${mm}-${dd}`;
+        document.getElementById('stats-month').value = `${yyyy}-${mm}`;
 
-        // Функция переключения вкладок
         function switchTab(mode) {
             currentMode = mode;
             
-            // Меняем активную кнопку
             document.getElementById('tab-today').classList.toggle('active', mode === 'today');
             document.getElementById('tab-archive').classList.toggle('active', mode === 'archive');
+            document.getElementById('tab-stats').classList.toggle('active', mode === 'stats');
             
-            // Показываем/скрываем календарь
             document.getElementById('date-controls').style.display = (mode === 'archive') ? 'flex' : 'none';
+            document.getElementById('stats-controls').style.display = (mode === 'stats') ? 'flex' : 'none';
             
-            // Перерисовываем карточки из уже загруженной памяти
             renderDashboard();
         }
 
-        // Функция загрузки данных с сервера (вызывается при старте и по кнопке "Обновить")
         async function fetchData() {
-            document.getElementById('last-update').innerText = "Синхронизация с таблицей...";
+            document.getElementById('last-update').innerText = "Синхронизация...";
             try {
                 const response = await fetch(WEB_APP_URL);
                 allData = await response.json(); 
@@ -109,40 +147,109 @@
                 const now = new Date();
                 document.getElementById('last-update').innerText = "Синхронизировано: " + now.toLocaleTimeString('ru-RU');
                 
-                // Сразу отрисовываем после скачивания
                 renderDashboard();
             } catch (error) {
-                document.getElementById('last-update').innerText = "Ошибка сети. Проверьте соединение.";
+                document.getElementById('last-update').innerText = "Ошибка сети. Проверьте ссылку.";
             }
         }
 
-        // Функция отрисовки карточек на основе выбранной даты
         function renderDashboard() {
             const dashboard = document.getElementById('dashboard');
             dashboard.innerHTML = "";
+
+            // Отрисовка режима СТАТИСТИКИ (Таблица)
+            if (currentMode === 'stats') {
+                dashboard.className = "table-container"; // Меняем сетку на контейнер таблицы
+                
+                const monthVal = document.getElementById('stats-month').value; // Формат "2026-09"
+                const shopVal = document.getElementById('stats-shop').value;
+                
+                let filteredData = allData;
+                
+                // Фильтр по месяцу
+                if (monthVal) {
+                    const parts = monthVal.split('-');
+                    const suffix = `${parts[1]}.${parts[0]}`; // Превращаем в "09.2026"
+                    filteredData = filteredData.filter(row => row[0].endsWith(suffix));
+                }
+                
+                // Фильтр по магазину
+                if (shopVal !== 'all') {
+                    filteredData = filteredData.filter(row => row[2] === shopVal);
+                }
+
+                if (filteredData.length === 0) {
+                    dashboard.innerHTML = "<div style='padding: 30px; text-align: center; color: #777;'>В этом месяце открытий пока не зафиксировано.</div>";
+                    return;
+                }
+
+                let html = `
+                    <table class="stats-table">
+                        <thead>
+                            <tr>
+                                <th>Дата</th>
+                                <th>Магазин</th>
+                                <th>Сотрудник</th>
+                                <th>Время открытия</th>
+                                <th>Фото чека</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                // Идем с конца массива (чтобы свежие даты были сверху)
+                for (let i = filteredData.length - 1; i >= 0; i--) {
+                    const row = filteredData[i];
+                    const dateStr = row[0];
+                    const timeStr = row[1];
+                    const shopName = row[2];
+                    const photoUrl = row[4];
+                    const employee = row[5] || "Не указан";
+                    
+                    const expectedTime = schedule[shopName];
+                    let timeClass = "time-ok";
+                    
+                    // Логика опозданий (сравниваем строки времени "09:15" > "09:00")
+                    if (timeStr && expectedTime && timeStr > expectedTime) {
+                        timeClass = "time-late";
+                    }
+
+                    html += `
+                        <tr>
+                            <td>${dateStr}</td>
+                            <td><b>${shopName}</b></td>
+                            <td>${employee}</td>
+                            <td class="${timeClass}">${timeStr} <span style="color:#999; font-size:11px; font-weight:normal;">(норма ${expectedTime})</span></td>
+                            <td><button class="btn-primary btn-small" onclick="window.open('${photoUrl}', '_blank')">Смотреть</button></td>
+                        </tr>
+                    `;
+                }
+                
+                html += `</tbody></table>`;
+                dashboard.innerHTML = html;
+                return;
+            }
+
+            // Отрисовка режима СЕГОДНЯ / АРХИВ (Карточки)
+            dashboard.className = "grid"; 
             
             let targetDateStr = "";
-
             if (currentMode === 'today') {
-                // Если вкладка "Сегодня", берем текущую дату в формате dd.MM.yyyy
                 const todayObj = new Date();
                 const day = String(todayObj.getDate()).padStart(2, '0');
                 const month = String(todayObj.getMonth() + 1).padStart(2, '0');
                 const year = todayObj.getFullYear();
                 targetDateStr = `${day}.${month}.${year}`;
             } else {
-                // Если вкладка "Архив", берем дату из календаря и переводим в формат Гугл Таблицы
                 const inputVal = document.getElementById('history-date').value;
-                if (!inputVal) return; // Если дата сброшена
-                const parts = inputVal.split('-'); // 2026-09-07 -> [2026, 09, 07]
+                if (!inputVal) return; 
+                const parts = inputVal.split('-'); 
                 targetDateStr = `${parts[2]}.${parts[1]}.${parts[0]}`;
             }
             
-            // Фильтруем общую базу по нужной дате
             const targetData = allData.filter(row => row[0] === targetDateStr);
             
             Object.keys(schedule).forEach(shop => {
-                // Ищем запись об открытии этого магазина
                 const shopLog = targetData.reverse().find(row => row[2] === shop); 
                 
                 const card = document.createElement('div');
@@ -161,7 +268,7 @@
                         statusHtml = `<div class="card-status closed">❌ Ждем открытия</div>`;
                         detailsHtml = `Сотрудник: —<br>По графику: ${schedule[shop]}`;
                     } else {
-                        statusHtml = `<div class="card-status archive-closed">⚠️ Нет данных за эту дату</div>`;
+                        statusHtml = `<div class="card-status archive-closed">⚠️ Нет данных</div>`;
                         detailsHtml = `Открытие не зафиксировано<br>По графику: ${schedule[shop]}`;
                     }
                     btnHtml = `<button class="btn-primary" disabled>Чек отсутствует</button>`;
@@ -177,10 +284,7 @@
             });
         }
 
-        // Запускаем первичное скачивание при открытии страницы
         fetchData();
-        
-        // Автоматическое фоновое обновление данных каждые 2 минуты
         setInterval(fetchData, 120000);
     </script>
 </body>
